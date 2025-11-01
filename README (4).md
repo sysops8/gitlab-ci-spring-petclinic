@@ -1,4 +1,3 @@
-markdown
 # Spring PetClinic CI/CD Pipeline на Proxmox
 
 Подробная инструкция по развертыванию end-to-end CI/CD pipeline с GitLab, Kubernetes, Maven, Nexus, SonarQube на домашнем Proxmox сервере.
@@ -205,6 +204,7 @@ output "vm_ips" {
     haproxy = "10.0.10.30"
   }
 }
+```
 1.3 Создание Cloud-Init шаблона
 На Proxmox хосте:
 bash
