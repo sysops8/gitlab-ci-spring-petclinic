@@ -451,8 +451,8 @@ sudo bash -c 'cat > /etc/bind/zones/db.192.168.50 <<EOF
 1       IN      PTR     ns1.local.lab.
 10      IN      PTR     gitlab.local.lab.
 20      IN      PTR     k3s-master.local.lab.
-21      IN      PTR     k3s-worker1.local.lab.
-22      IN      PTR     k3s-worker2.local.lab.
+21      IN      PTR     k3s-worker-1.local.lab.
+22      IN      PTR     k3s-worker-2.local.lab.
 101     IN      PTR     sonarqube.local.lab.
 102     IN      PTR     nexus.local.lab.
 103     IN      PTR     petclinic.local.lab.
