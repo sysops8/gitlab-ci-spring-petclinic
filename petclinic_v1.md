@@ -22,6 +22,7 @@
 16. [Дополнительные настройки](#часть-15-дополнительные-настройки)
 
 ---
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/3c0e0bba-823e-4870-bcf5-65da6afc2aa3" />
 
 ## Архитектура решения
 
