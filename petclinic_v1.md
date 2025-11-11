@@ -391,7 +391,7 @@ sudo vim /etc/bind/zones/db.local.lab
 
 ```
 sudo bash -c 'cat > /etc/bind/zones/db.local.lab <<EOF
-$TTL    604800
+\$TTL    604800
 @       IN      SOA     ns1.local.lab. admin.local.lab. (
                               3         ; Serial (увеличивайте при изменениях)
                          604800         ; Refresh
@@ -435,7 +435,7 @@ sudo vim /etc/bind/zones/db.192.168.50
 
 ```
 sudo bash -c 'cat > /etc/bind/zones/db.192.168.50 <<EOF
-$TTL    604800
+\$TTL    604800
 @       IN      SOA     ns1.local.lab. admin.local.lab. (
                               3         ; Serial
                          604800         ; Refresh
