@@ -289,7 +289,16 @@ BIND9 будет авторитативным DNS сервером для зон
 #### 2.4.1 Установка BIND9
 
 ```bash
-sudo apt install -y bind9 bind9-utils bind9-doc
+# Обновление системы
+sudo apt update && sudo apt upgrade -y
+
+# Установка BIND9
+sudo apt install -y bind9 bind9utils bind9-doc dnsutils
+
+# Останов systemd-resolved (конфликтует с BIND)
+sudo systemctl disable systemd-resolved
+sudo systemctl stop systemd-resolved
+sudo rm -f /etc/resolv.conf
 ```
 
 #### 2.4.2 Настройка основной конфигурации
