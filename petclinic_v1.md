@@ -24,7 +24,7 @@
 ---
 <img width="2084" height="1334" alt="image" src="https://github.com/user-attachments/assets/2147bb46-47ae-4e0e-80af-279fdf1183cf" />
 
-<img width="600" height="300" alt="image" src="https://github.com/user-attachments/assets/e469c63d-e89d-4407-bb3a-365617bee75b" />
+
 
 
 ## Архитектура решения
