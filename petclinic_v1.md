@@ -312,40 +312,35 @@ sudo vim /etc/bind/named.conf.options
 Замените содержимое на:
 
 ```
-sudo bash -c 'cat > /etc/bind/named.conf.options <<EOF
+ssudo bash -c 'cat > /etc/bind/named.conf.options <<EOF
 options {
     directory "/var/cache/bind";
-    
-    // Форварднутые DNS серверы (Google DNS)
+
+    // Слушать на всех интерфейсах
+    listen-on { 127.0.0.1; 192.168.50.1; };
+    listen-on-v6 { none; };
+
+    // Разрешить запросы из локальных сетей
+    allow-query { 
+        localhost; 
+        192.168.50.0/24;        
+    };
+
+    // Рекурсия для локальных сетей
+    recursion yes;
+    allow-recursion { 
+        localhost; 
+        192.168.50.0/24;    
+    };
+
+    // Форвардинг на публичные DNS
     forwarders {
         8.8.8.8;
         8.8.4.4;
     };
-    
-    // Разрешить запросы от внутренней сети
-    allow-query { 
-        localhost; 
-        192.168.50.0/24; 
-        10.0.10.0/24;
-    };
-    
-    // Разрешить рекурсию
-    recursion yes;
-    allow-recursion { 
-        localhost; 
-        192.168.50.0/24; 
-        10.0.10.0/24;
-    };
-    
-    // Слушать на всех интерфейсах
-    listen-on { any; };
-    listen-on-v6 { none; };
-    
-    // DNSSEC
+
     dnssec-validation auto;
-    
-    // Кэш
-    max-cache-size 256m;
+    auth-nxdomain no;
 };
 EOF'
 ```
