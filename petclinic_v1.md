@@ -1298,7 +1298,7 @@ EOF
 ### 7.4 Установка Nexus
 
 ```bash
-helm install nexus sonatype/nexus-repository-manager \
+helm install nexus sonatype/nxrm-ha \
   --namespace nexus \
   -f nexus-values.yaml \
   --timeout 15m
