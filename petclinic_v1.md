@@ -702,13 +702,15 @@ sudo apt install -y curl wget vim
 ping -c 3 8.8.8.8
 ping -c 3 google.com
 
-# С внутренних VM (через jump)
-ssh -J ubuntu@10.0.10.30 ubuntu@192.168.50.10
-
 # На GitLab VM
 ping -c 3 8.8.8.8  # должен работать через NAT
 ping -c 3 google.com  # должен резолвиться через BIND
 nslookup gitlab.local.lab  # должен вернуть 192.168.50.10
+```
+Соединение на внешней машине из 10.0.10.0/24 с внутренними 192.168.50.0.24:
+```bash
+# С внутренних VM (через jump)
+ssh -J ubuntu@10.0.10.30 ubuntu@192.168.50.10
 ```
 
 ---
