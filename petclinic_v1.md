@@ -913,7 +913,7 @@ sudo cat /var/lib/rancher/k3s/server/node-token
 # K10abc123def456ghi789jkl012mno345pqr::server:678stu901vwx234yz
 ```
 
-### 4.3 Настройка kubectl для пользователя ubuntu
+### 4.3 Настройка kubectl для пользователя admin
 
 ```bash
 # Создание .kube директории
@@ -933,7 +933,7 @@ kubectl get pods --all-namespaces
 Подключение:
 
 ```bash
-ssh -J ubuntu@10.0.10.30 ubuntu@192.168.50.21
+ssh -J admin@10.0.10.30 admin@192.168.50.21
 ```
 
 Установка:
@@ -956,7 +956,7 @@ sudo systemctl status k3s-agent
 Подключение:
 
 ```bash
-ssh -J ubuntu@10.0.10.30 ubuntu@192.168.50.22
+ssh -J admin@10.0.10.30 admin@192.168.50.22
 ```
 
 Установка:
