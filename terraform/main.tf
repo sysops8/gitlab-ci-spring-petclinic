@@ -36,7 +36,7 @@ locals {
       disk_size       = 40
       extra_disk_size = null
       networks = [
-        { bridge = "vmbr1", ip = "192.168.50.20/24", gateway = "192.168.50.1" }
+        { bridge = "vmbr1", ip = "192.168.50.10/24", gateway = "192.168.50.1" }
       ]
     } 
 
@@ -47,7 +47,7 @@ locals {
       disk_size       = 60
       extra_disk_size = null
       networks = [
-        { bridge = "vmbr1", ip = "192.168.50.10/24", gateway = "192.168.50.1" }
+        { bridge = "vmbr1", ip = "192.168.50.20/24", gateway = "192.168.50.1" }
       ]
     }
     k3s-worker-1 = {
@@ -57,7 +57,7 @@ locals {
       disk_size       = 80
       extra_disk_size = null
       networks = [
-        { bridge = "vmbr1", ip = "192.168.50.11/24", gateway = "192.168.50.1" }
+        { bridge = "vmbr1", ip = "192.168.50.21/24", gateway = "192.168.50.1" }
       ]
     }
     k3s-worker-2 = {
@@ -67,7 +67,7 @@ locals {
       disk_size       = 80
       extra_disk_size = null
       networks = [
-        { bridge = "vmbr1", ip = "192.168.50.12/24", gateway = "192.168.50.1" }
+        { bridge = "vmbr1", ip = "192.168.50.22/24", gateway = "192.168.50.1" }
       ]
     }
   }
