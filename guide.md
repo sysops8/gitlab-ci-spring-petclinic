@@ -34,7 +34,7 @@ Internet
                 ├─→ HAProxy-2: 192.168.30.11 (VRRP Backup)
                 └─→ VIP: 192.168.30.1 (Keepalived)
 ```
-
+### 1.1 Требования к ресурсам (Production)
 | VM | CPU | RAM | Disk | Назначение |
 |----|-----|-----|------|-----------|
 | **Bastion** | 2 | 2GB | 20GB | SSH Jump, Monitoring Agent |
@@ -52,7 +52,7 @@ Internet
 | **K3s Worker-3** | 4 | 16GB | 100GB | Workloads |
 
 **Итого:** 46 vCPU, 126GB RAM, 1TB Disk
-Желательные требования к ресурсам
+
 
 ## Этап 1: Подготовка Базовой Инфраструктуры
 
