@@ -98,13 +98,13 @@ Internet (Grey IP)
 
 ### 1.1 Требования к ресурсам VM
 
-| VM | CPU | RAM | Disk | Назначение |
-|----|-----|-----|------|-----------|
-| Gateway | 2 | 4GB | 20GB | NAT, DNS (BIND), HAProxy, Jump host |
-| GitLab | 4 | 8GB | 50GB | Git repository, CI/CD orchestration |
-| K3s Master | 2 | 4GB | 40GB | Kubernetes control plane |
-| K3s Worker-1 | 2 | 8GB | 60GB | Kubernetes workloads (Nexus) |
-| K3s Worker-2 | 2 | 8GB | 60GB | Kubernetes workloads (SonarQube) |
+| VM | CPU | RAM | Disk | Назначение |IP адрес внут./внеш. |
+|----|-----|-----|------|-----------|-----------|
+| Gateway | 2 | 4GB | 20GB | NAT, DNS (BIND), HAProxy, Jump host | 192.168.50.1 / 10.0.10.30 |
+| GitLab | 4 | 8GB | 50GB | Git repository, CI/CD orchestration |192.168.50.10 / |
+| K3s Master | 2 | 4GB | 40GB | Kubernetes control plane |192.168.50.20|
+| K3s Worker-1 | 2 | 8GB | 60GB | Kubernetes workloads (Nexus) |192.168.50.21)|
+| K3s Worker-2 | 2 | 8GB | 60GB | Kubernetes workloads (SonarQube) |192.168.50.22|
 
 **Итого**: 12 vCPU, 32GB RAM, 230GB Disk
 
