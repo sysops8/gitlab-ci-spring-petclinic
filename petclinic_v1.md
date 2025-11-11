@@ -312,6 +312,7 @@ sudo vim /etc/bind/named.conf.options
 Замените содержимое на:
 
 ```
+sudo bash -c 'cat > /etc/bind/named.conf.options <<EOF
 options {
     directory "/var/cache/bind";
     
@@ -346,6 +347,7 @@ options {
     // Кэш
     max-cache-size 256m;
 };
+EOF'
 ```
 
 #### 2.4.3 Создание зоны local.lab
@@ -359,6 +361,7 @@ sudo vim /etc/bind/named.conf.local
 Добавьте:
 
 ```
+sudo bash -c 'cat > /etc/bind/named.conf.local <<EOF
 // Прямая зона для local.lab
 zone "local.lab" {
     type master;
@@ -372,6 +375,7 @@ zone "50.168.192.in-addr.arpa" {
     file "/etc/bind/zones/db.192.168.50";
     allow-update { none; };
 };
+EOF'
 ```
 
 #### 2.4.4 Создание файлов зон
@@ -391,6 +395,7 @@ sudo vim /etc/bind/zones/db.local.lab
 Содержимое:
 
 ```
+sudo bash -c 'cat > /etc/bind/zones/db.local.lab <<EOF
 $TTL    604800
 @       IN      SOA     ns1.local.lab. admin.local.lab. (
                               3         ; Serial (увеличивайте при изменениях)
@@ -422,6 +427,7 @@ git             IN      CNAME   gitlab
 sonar           IN      CNAME   sonarqube
 repo            IN      CNAME   nexus
 app             IN      CNAME   petclinic
+EOF'
 ```
 
 Создайте обратную зону:
@@ -433,6 +439,7 @@ sudo vim /etc/bind/zones/db.192.168.50
 Содержимое:
 
 ```
+sudo bash -c 'cat > /etc/bind/zones/db.192.168.50 <<EOF
 $TTL    604800
 @       IN      SOA     ns1.local.lab. admin.local.lab. (
                               3         ; Serial
@@ -454,6 +461,7 @@ $TTL    604800
 101     IN      PTR     sonarqube.local.lab.
 102     IN      PTR     nexus.local.lab.
 103     IN      PTR     petclinic.local.lab.
+EOF'
 ```
 
 #### 2.4.5 Проверка конфигурации BIND
