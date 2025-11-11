@@ -520,69 +520,175 @@ nslookup google.com 127.0.0.1
 
 #### 2.4.8 Настройка DNS на клиентских машинах
 
-**На Windows (рабочая машина):**
+### Настройка DNS на всех VM
 
-1. Панель управления → Сеть и Интернет → Центр управления сетями
-2. Изменение параметров адаптера → Свойства активного подключения
-3. Протокол IPv4 → Свойства
-4. Использовать следующие DNS: **10.0.10.30**
-5. Альтернативный DNS: **8.8.8.8**
 
-**Через PowerShell:**
+#### Ручная настройка jumphost
 
-```powershell
-# Получить имя сетевого адаптера
-Get-NetAdapter
+```bash
+ssh admin@jumphost.local.lab
 
-# Установить DNS (замените "Ethernet" на имя вашего адаптера)
-Set-DnsClientServerAddress -InterfaceAlias "Ethernet" -ServerAddresses "10.0.10.30","8.8.8.8"
+sudo systemctl disable systemd-resolved
+sudo systemctl stop systemd-resolved
+sudo rm -f /etc/resolv.conf
+
+sudo bash -c 'cat > /etc/resolv.conf <<EOF
+nameserver 192.168.100.53
+nameserver 8.8.8.8
+search local.lab
+EOF'
+
+sudo chattr +i /etc/resolv.conf
+
+# Netplan для jumphost (2 интерфейса)
+sudo bash -c 'cat > /etc/netplan/00-installer-config.yaml <<EOF
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: no
+      addresses: [10.0.10.102/24]
+      routes:
+        - to: 0.0.0.0/0
+          via: 10.0.10.1
+      nameservers:
+        addresses: [192.168.100.53, 8.8.8.8]
+        search: [local.lab]
+    eth1:
+      dhcp4: no
+      addresses: [192.168.100.5/24]
+      nameservers:
+        addresses: [192.168.100.53]
+        search: [local.lab]
+EOF'
+
+sudo apt install -y openvswitch-switch
+sudo chmod 600 /etc/netplan/00-installer-config.yaml
+sudo netplan apply
 
 # Проверка
-nslookup gitlab.local.lab
-nslookup nexus.local.lab
+ping -c 2 google.com
+nslookup k3s-master.local.lab
 ```
 
-**На Linux клиенте:**
+Создайте скрипт для автоматизации:
 
 ```bash
-# Временно
-sudo resolvectl dns eth0 10.0.10.30 8.8.8.8
+# На jumphost создайте файл set-dns.sh
+cat > /tmp/set-dns.sh <<'EOF'
+#!/bin/bash
 
-# Перманентно (Ubuntu/Debian с systemd-resolved)
-sudo vim /etc/systemd/resolved.conf
+echo "Настройка DNS и маршрутизации..."
+
+# Получение текущего IP
+CURRENT_IP=$(ip -4 addr show eth0 | grep -oP '(?<=inet\s)\d+(\.\d+){3}')
+
+# Определение gateway
+if [[ $CURRENT_IP == 192.168.50.* ]]; then
+    GATEWAY="192.168.50.1"  # cf-tunnel как gateway
+    NETMASK="24"
+elif [[ $CURRENT_IP == 10.0.10.* ]]; then
+    GATEWAY="10.0.10.1"
+    NETMASK="24"
+else
+    echo "Неизвестная сеть!"
+    exit 1
+fi
+
+# Остановка systemd-resolved
+sudo systemctl disable systemd-resolved 2>/dev/null
+sudo systemctl stop systemd-resolved 2>/dev/null
+sudo rm -f /etc/resolv.conf
+
+# Создание resolv.conf
+sudo bash -c 'cat > /etc/resolv.conf <<EOL
+nameserver 192.168.50.1
+nameserver 8.8.8.8
+search local.lab
+EOL'
+
+sudo chattr +i /etc/resolv.conf
+
+# Обновление netplan
+if [ -f /etc/netplan/00-installer-config.yaml ]; then
+    sudo bash -c "cat > /etc/netplan/00-installer-config.yaml <<EOL
+network:
+  version: 2
+  ethernets:
+    eth0:
+      dhcp4: no
+      addresses: [${CURRENT_IP}/${NETMASK}]
+      routes:
+        - to: 0.0.0.0/0
+          via: ${GATEWAY}
+      nameservers:
+        addresses: [192.168.50.1, 8.8.8.8]
+        search: [local.lab]
+EOL"
+    sudo netplan apply
+fi
+
+echo "Настройка завершена!"
+echo "Gateway: $GATEWAY"
+echo "DNS: 192.168.50.1"
+
+# Тестирование
+echo ""
+echo "Тестирование DNS..."
+nslookup k3s-master.local.lab
+
+echo ""
+echo "Тестирование интернета..."
+ping -c 2 8.8.8.8
+ping -c 2 google.com
+EOF
+
+chmod +x /tmp/set-dns.sh
 ```
 
-Добавьте:
-
-```
-[Resolve]
-DNS=10.0.10.30 8.8.8.8
-Domains=~local.lab
-```
+#### Применение на всех VM
 
 ```bash
-sudo systemctl restart systemd-resolved
+# На jumphost создайте список хостов (только внутренние VM)
+cat > /tmp/internal-hosts.txt <<EOF
+k3s-master.local.lab
+k3s-worker-1.local.lab
+k3s-worker-2.local.lab
+gitlab.local.lab
+EOF
 
-# Проверка
-resolvectl status
-dig gitlab.local.lab
+# Применение скрипта на всех VM
+for host in $(cat /tmp/internal-hosts.txt); do
+    echo "===================================="
+    echo "Настройка $host..."
+    scp /tmp/set-dns.sh admin@${host}:/tmp/
+    ssh admin@${host} "sudo bash /tmp/set-dns.sh"
+    echo ""
+done
+
+# Для VM с двумя интерфейсами (jumphost уже настроен вручную)
 ```
 
-#### 2.4.9 Альтернатива: Файл hosts (если не хотите менять DNS)
 
-**Windows**: `C:\Windows\System32\drivers\etc\hosts` (от администратора):
+### Проверка доступности интернета
 
-```
-10.0.10.30 gitlab.local.lab
-10.0.10.30 nexus.local.lab
-10.0.10.30 sonarqube.local.lab
-10.0.10.30 petclinic.local.lab
-```
-
-**Linux/Mac**: `/etc/hosts`:
+На любой VM в сети 192.168.50.0/24:
 
 ```bash
-echo "10.0.10.30 gitlab.local.lab nexus.local.lab sonarqube.local.lab petclinic.local.lab" | sudo tee -a /etc/hosts
+# Проверка маршрутов
+ip route show
+# Должно быть: default via 192.168.50.1 dev eth0
+
+# Проверка DNS
+nslookup google.com
+
+# Проверка интернета
+ping -c 4 8.8.8.8
+ping -c 4 google.com
+
+# Установка пакетов
+sudo apt update
+sudo apt install -y curl wget vim
 ```
 
 ### 2.5 Проверка работы Gateway
