@@ -921,7 +921,7 @@ mkdir -p ~/.kube
 
 # Копирование kubeconfig
 sudo cp /etc/rancher/k3s/k3s.yaml ~/.kube/config
-sudo chown ubuntu:ubuntu ~/.kube/config
+sudo chown admin:admin ~/.kube/config
 
 # Проверка доступа
 kubectl get nodes
