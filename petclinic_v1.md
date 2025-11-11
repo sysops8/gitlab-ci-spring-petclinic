@@ -1262,10 +1262,12 @@ persistence:
 
 # Nexus configuration
 nexus:
+  imageName: sonatype/nexus3
+  imageTag: "3.86.0"   # Указываем безопасную версию напрямую!
   env:
     - name: INSTALL4J_ADD_VM_PARAMS
       value: "-Xms1200M -Xmx1200M -XX:MaxDirectMemorySize=2G"
-  
+
   # Docker registry port (опционально)
   docker:
     enabled: false
