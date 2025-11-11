@@ -533,7 +533,7 @@ sudo systemctl stop systemd-resolved
 sudo rm -f /etc/resolv.conf
 
 sudo bash -c 'cat > /etc/resolv.conf <<EOF
-nameserver 192.168.100.53
+nameserver 192.168.50.1
 nameserver 8.8.8.8
 search local.lab
 EOF'
@@ -547,18 +547,18 @@ network:
   ethernets:
     eth0:
       dhcp4: no
-      addresses: [10.0.10.102/24]
+      addresses: [10.0.10.30/24]
       routes:
         - to: 0.0.0.0/0
           via: 10.0.10.1
       nameservers:
-        addresses: [192.168.100.53, 8.8.8.8]
+        addresses: [192.168.50.1, 8.8.8.8]
         search: [local.lab]
     eth1:
       dhcp4: no
-      addresses: [192.168.100.5/24]
+      addresses: [192.168.50.1/24]
       nameservers:
-        addresses: [192.168.100.53]
+        addresses: [192.168.50.1]
         search: [local.lab]
 EOF'
 
