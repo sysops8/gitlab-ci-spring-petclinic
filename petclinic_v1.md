@@ -886,7 +886,7 @@ curl -sfL https://get.k3s.io | sh -s - server \
   --disable servicelb \
   --node-ip 192.168.50.20 \
   --node-external-ip 192.168.50.20 \
-  --flannel-iface ens19 \
+  --flannel-iface eth0 \
   --write-kubeconfig-mode 644
 
 # Проверка установки
@@ -945,7 +945,7 @@ export K3S_URL="https://192.168.50.20:6443"
 
 curl -sfL https://get.k3s.io | K3S_URL=$K3S_URL K3S_TOKEN=$K3S_TOKEN sh -s - \
   --node-ip 192.168.50.21 \
-  --flannel-iface ens19
+  --flannel-iface eth0
 
 # Проверка статуса
 sudo systemctl status k3s-agent
@@ -968,7 +968,7 @@ export K3S_URL="https://192.168.50.20:6443"
 
 curl -sfL https://get.k3s.io | K3S_URL=$K3S_URL K3S_TOKEN=$K3S_TOKEN sh -s - \
   --node-ip 192.168.50.22 \
-  --flannel-iface ens19
+  --flannel-iface eth0
 
 # Проверка
 sudo systemctl status k3s-agent
