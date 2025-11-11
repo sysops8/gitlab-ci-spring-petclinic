@@ -35,6 +35,25 @@ Internet
                 └─→ VIP: 192.168.30.1 (Keepalived)
 ```
 
+| VM | CPU | RAM | Disk | Назначение |
+|----|-----|-----|------|-----------|
+| **Bastion** | 2 | 2GB | 20GB | SSH Jump, Monitoring Agent |
+| **GitLab** | 4 | 16GB | 100GB | Git, CI/CD, Container Registry |
+| **Nexus** | 4 | 8GB | 200GB | Artifact Repository |
+| **SonarQube** | 4 | 8GB | 50GB | Code Quality |
+| **PostgreSQL** | 4 | 8GB | 100GB | Shared DB (GitLab, Sonar) |
+| **HAProxy-1** | 2 | 4GB | 30GB | Load Balancer (Master) |
+| **HAProxy-2** | 2 | 4GB | 30GB | Load Balancer (Backup) |
+| **K3s Master-1** | 4 | 8GB | 50GB | Control Plane |
+| **K3s Master-2** | 4 | 8GB | 50GB | Control Plane |
+| **K3s Master-3** | 4 | 8GB | 50GB | Control Plane |
+| **K3s Worker-1** | 4 | 16GB | 100GB | Workloads |
+| **K3s Worker-2** | 4 | 16GB | 100GB | Workloads |
+| **K3s Worker-3** | 4 | 16GB | 100GB | Workloads |
+
+**Итого:** 46 vCPU, 126GB RAM, 1TB Disk
+Желательные требования к ресурсам
+
 ## Этап 1: Подготовка Базовой Инфраструктуры
 
 ### 1.1 Настройка VLAN на хостах
