@@ -312,7 +312,7 @@ sudo vim /etc/bind/named.conf.options
 Замените содержимое на:
 
 ```
-ssudo bash -c 'cat > /etc/bind/named.conf.options <<EOF
+sudo bash -c 'cat > /etc/bind/named.conf.options <<EOF
 options {
     directory "/var/cache/bind";
 
