@@ -1124,6 +1124,7 @@ resources:
 sonarqube:
   jvmOpts: "-Xmx2048m -Xms512m"
 
+monitoringPasscode: "myStrongPasscode123"
 # Persistence
 persistence:
   enabled: true
