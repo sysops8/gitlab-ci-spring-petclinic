@@ -525,8 +525,12 @@ nslookup google.com 127.0.0.1
 
 #### Ручная настройка jumphost
 
+
 ```bash
 ssh admin@jumphost.local.lab
+```
+```bash
+
 
 sudo systemctl disable systemd-resolved
 sudo systemctl stop systemd-resolved
