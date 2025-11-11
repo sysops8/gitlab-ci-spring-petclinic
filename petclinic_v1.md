@@ -1298,6 +1298,7 @@ EOF
 ### 7.4 Установка Nexus
 
 ```bash
+# kubectl create namespace nexus
 helm install nexus sonatype/nxrm-ha \
   --namespace nexus \
   -f nexus-values.yaml \
