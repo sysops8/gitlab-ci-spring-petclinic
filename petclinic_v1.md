@@ -1247,11 +1247,11 @@ service:
 # Resource limits
 resources:
   requests:
-    cpu: 500m
-    memory: 2Gi
+    cpu: 250m
+    memory: 1Gi
   limits:
-    cpu: 2000m
-    memory: 4Gi
+    cpu: 1000m
+    memory: 2Gi
 
 # Persistence
 persistence:
