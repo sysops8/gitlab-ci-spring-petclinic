@@ -419,8 +419,8 @@ gitlab          IN      A       192.168.50.10
 k3s-master      IN      A       192.168.50.20
 k3s-worker-1     IN      A       192.168.50.21
 k3s-worker-2     IN      A       192.168.50.22
-sonarqube       IN      A       192.168.50.31
-nexus           IN      A       192.168.50.32
+sonarqube       IN      A       192.168.50.30
+nexus           IN      A       192.168.50.31
 
 ; A records для сервисов (MetalLB IPs)
 petclinic       IN      A       192.168.50.103
