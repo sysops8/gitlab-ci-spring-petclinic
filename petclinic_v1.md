@@ -57,12 +57,10 @@
 - K3s Worker-1: 192.168.50.21
 - K3s Worker-2: 192.168.50.22
 - SonarQube: 192.168.50.30
-- Nexus Repository: 192.168.100.31
+- Nexus Repository: 192.168.50.31
 - MetalLB IP Pool: 192.168.50.100-192.168.50.150
 
 #### Сервисы Kubernetes (MetalLB)
-- SonarQube: 192.168.50.101:9000
-- Nexus: 192.168.50.102:8081
 - PetClinic: 192.168.50.103:80
 
 ### Преимущества архитектуры
@@ -95,6 +93,8 @@ Internet (Grey IP)
                           ├─→ K3s Master (192.168.50.20)
                           ├─→ K3s Worker-1 (192.168.50.21)
                           ├─→ K3s Worker-2 (192.168.50.22)
+                          ├─→ SonarQube (192.168.50.30)
+                          ├─→ Nexus (192.168.50.31)
                           └─→ MetalLB Services (192.168.50.100+)
 ```
 
@@ -111,6 +111,8 @@ Internet (Grey IP)
 | K3s Master | 2 | 4GB | 40GB | Kubernetes control plane |192.168.50.20|
 | K3s Worker-1 | 2 | 8GB | 60GB | Kubernetes workloads (Nexus) |192.168.50.21|
 | K3s Worker-2 | 2 | 8GB | 60GB | Kubernetes workloads (SonarQube) |192.168.50.22|
+| SonarQube | 2 | 4GB | 40GB | Kubernetes workloads (SonarQube) |192.168.50.30|
+| Nexus | 2 | 4GB | 100GB | Kubernetes workloads (SonarQube) |192.168.50.31|
 
 **Итого**: 12 vCPU, 32GB RAM, 230GB Disk
 
