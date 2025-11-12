@@ -419,10 +419,10 @@ gitlab          IN      A       192.168.50.10
 k3s-master      IN      A       192.168.50.20
 k3s-worker-1     IN      A       192.168.50.21
 k3s-worker-2     IN      A       192.168.50.22
+sonarqube       IN      A       192.168.50.31
+nexus           IN      A       192.168.50.32
 
 ; A records для сервисов (MetalLB IPs)
-sonarqube       IN      A       192.168.50.101
-nexus           IN      A       192.168.50.102
 petclinic       IN      A       192.168.50.103
 
 ; CNAME aliases (опционально)
@@ -461,8 +461,8 @@ sudo bash -c 'cat > /etc/bind/zones/db.192.168.50 <<EOF
 20      IN      PTR     k3s-master.local.lab.
 21      IN      PTR     k3s-worker-1.local.lab.
 22      IN      PTR     k3s-worker-2.local.lab.
-101     IN      PTR     sonarqube.local.lab.
-102     IN      PTR     nexus.local.lab.
+31      IN      PTR     sonarqube.local.lab.
+32      IN      PTR     nexus.local.lab.
 103     IN      PTR     petclinic.local.lab.
 EOF'
 ```
