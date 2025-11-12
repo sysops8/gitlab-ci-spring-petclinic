@@ -56,6 +56,8 @@
 - K3s Master: 192.168.50.20
 - K3s Worker-1: 192.168.50.21
 - K3s Worker-2: 192.168.50.22
+- SonarQube: 192.168.50.30
+- Nexus Repository: 192.168.100.31
 - MetalLB IP Pool: 192.168.50.100-192.168.50.150
 
 #### Сервисы Kubernetes (MetalLB)
@@ -1080,289 +1082,181 @@ helm repo list
 
 SonarQube - платформа для непрерывной инспекции качества кода.
 
-### 6.1 Добавление Helm репозитория SonarQube
-
-На K3s Master:
+### 10.2 SonarQube Server
 
 ```bash
-helm repo add sonarqube https://SonarSource.github.io/helm-chart-sonarqube
-helm repo update
-
-# Проверка
-helm search repo sonarqube
+ssh ubuntu@192.168.100.30
 ```
-
-### 6.2 Создание namespace
-
 ```bash
-kubectl create namespace sonarqube
+# Обновление системы
+sudo apt update && sudo apt upgrade -y
 
-# Проверка
-kubectl get namespaces
-```
+# Установка Docker
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y curl vim openssl docker.io docker-compose
+sudo systemctl enable docker --now
+docker --version
+docker-compose --version
+sudo usermod -aG docker $USER
+sudo usermod -aG docker ubuntu
 
-### 6.3 Подготовка values файла
+# Настройка системы для SonarQube
+sudo sysctl -w vm.max_map_count=524288
+sudo sysctl -w fs.file-max=131072
+echo "vm.max_map_count=524288" | sudo tee -a /etc/sysctl.conf
+echo "fs.file-max=131072" | sudo tee -a /etc/sysctl.conf
 
-```bash
-cat > sonarqube-values.yaml <<'EOF'
-# Service configuration
-service:
-  type: LoadBalancer
-  loadBalancerIP: 192.168.50.101
-  port: 9000
+sudo tee docker-compose.yml > /dev/null <<'EOF'
+services:
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    container_name: sonarqube_db
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonarqube
+  sonarqube:
+    image: sonarqube:25.10.0.114319-community
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://db:5432/sonarqube
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    ports:
+      - "9000:9000"
 
-# Resource limits
-resources:
-  requests:
-    cpu: 500m
-    memory: 2Gi
-  limits:
-    cpu: 2000m
-    memory: 4Gi
-
-# JVM options
-sonarqube:
-  jvmOpts: "-Xmx2048m -Xms512m"
-
-monitoringPasscode: "myStrongPasscode123"
-community:
-  enabled: true
-# Persistence
-persistence:
-  enabled: true
-  storageClass: "local-path"
-  size: 20Gi
-  accessMode: ReadWriteOnce
-
-# PostgreSQL (embedded)
-postgresql:
-  enabled: true
-  postgresqlUsername: sonarUser
-  postgresqlPassword: sonarPass
-  postgresqlDatabase: sonarDB
-  persistence:
-    enabled: true
-    storageClass: "local-path"
-    size: 10Gi
-
-# Plugins (опционально)
-plugins:
-  install: []
-  # - "https://github.com/checkstyle/sonar-checkstyle/releases/download/10.12.5/checkstyle-sonar-plugin-10.12.5.jar"
-
-# Init containers for sysctl (required for Elasticsearch)
-initSysctl:
-  enabled: true
-  vmMaxMapCount: 524288
-  fsFileMax: 131072
 EOF
 ```
 
-### 6.4 Установка SonarQube
 
-```bash
-helm install sonarqube sonarqube/sonarqube \
-  --namespace sonarqube \
-  -f sonarqube-values.yaml \
-  --timeout 10m
-
-# Мониторинг установки
-kubectl get pods -n sonarqube -w
-
-# Ожидайте статуса Running (может занять 5-7 минут)
+**Примечание:**    По умолчанию контейнер SonarQube и Postgresql стирают свои данные при перезапуске (sudo docker-compose down).  Поэтому нужно создать другой yaml файл с persistent volume, то есть хранением данных на хостовой машине. Вот пример постоянной машины Sonarqube:
 ```
+sudo tee docker-compose.yml > /dev/null <<EOF
+services:
+  db:
+    image: postgres:15
+    container_name: sonarqube_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sonar
+      POSTGRES_PASSWORD: sonar
+      POSTGRES_DB: sonarqube
+    volumes:
+      - sonarqube_db_data:/var/lib/postgresql/data
 
-### 6.5 Проверка развертывания
+  sonarqube:
+    image: sonarqube:25.10.0.114319-community
+    container_name: sonarqube
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://db:5432/sonarqube
+      SONAR_JDBC_USERNAME: sonar
+      SONAR_JDBC_PASSWORD: sonar
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
 
-```bash
-# Проверка pods
-kubectl get pods -n sonarqube
-
-# Проверка services
-kubectl get svc -n sonarqube
-
-# Ожидаемый вывод:
-# NAME                  TYPE           EXTERNAL-IP      PORT(S)
-# sonarqube-sonarqube   LoadBalancer   192.168.50.101   9000:xxxxx/TCP
-
-# Проверка логов
-kubectl logs -n sonarqube -l app=sonarqube -f
-```
-
-### 6.6 Доступ к SonarQube
-
-**После настройки HAProxy** (Часть 8), откройте:
-
-```
-http://sonarqube.local.lab
-```
-
-**Временный доступ** (до настройки HAProxy):
-
-```bash
-# Port-forward с Windows
-kubectl port-forward -n sonarqube svc/sonarqube-sonarqube 9000:9000
-
-# Откройте: http://localhost:9000
-```
-
-**Credentials по умолчанию**:
-- Username: `admin`
-- Password: `admin`
-
-**Важно**: При первом входе SonarQube попросит сменить пароль.
-
----
-
-## Часть 7: Установка Nexus Repository
-
-Nexus Repository Manager - универсальное хранилище артефактов (Maven, Docker, npm и др.).
-
-### 7.1 Добавление Helm репозитория
-
-```bash
-helm repo add sonatype https://sonatype.github.io/helm3-charts/
-helm repo update
-
-# Проверка
-helm search repo nexus
-```
-
-### 7.2 Создание namespace
-
-```bash
-kubectl create namespace nexus
-```
-
-### 7.3 Подготовка values файла
-
-```bash
-cat > nexus-values.yaml <<'EOF'
-# Service configuration
-service:
-  type: LoadBalancer
-  loadBalancerIP: 192.168.50.102
-  port: 8081
-
-# Resource limits
-resources:
-  requests:
-    cpu: 250m
-    memory: 1Gi
-  limits:
-    cpu: 1000m
-    memory: 2Gi
-
-# Persistence
-persistence:
-  enabled: true
-  storageClass: "local-path"
-  storageSize: 50Gi
-  accessMode: ReadWriteOnce
-
-# Nexus configuration
-nexus:
-  imageName: sonatype/nexus3
-  imageTag: "3.86.0"   # Указываем безопасную версию напрямую!
-  env:
-    - name: INSTALL4J_ADD_VM_PARAMS
-      value: "-Xms1200M -Xmx1200M -XX:MaxDirectMemorySize=2G"
-
-  # Docker registry port (опционально)
-  docker:
-    enabled: false
-    # registries:
-    #   - host: docker.local.lab
-    #     port: 5000
-
-# Security context
-securityContext:
-  runAsUser: 200
-  runAsGroup: 200
-  fsGroup: 200
-
-# Liveness probe
-livenessProbe:
-  initialDelaySeconds: 120
-  periodSeconds: 30
-  failureThreshold: 6
-
-# Readiness probe
-readinessProbe:
-  initialDelaySeconds: 120
-  periodSeconds: 30
-  failureThreshold: 6
+volumes:
+  sonarqube_db_data:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
 EOF
 ```
 
-### 7.4 Установка Nexus
+
+### Запуск SonarQube если он не запущен
 
 ```bash
-# kubectl create namespace nexus
-helm install nexus sonatype/nxrm-ha \
-  --namespace nexus \
-  -f nexus-values.yaml \
-  --timeout 15m
-
-# Мониторинг установки
-kubectl get pods -n nexus -w
-
-# Nexus стартует долго (5-10 минут)
+sudo docker-compose up -d
 ```
+Нужно пождать 3-5 минут пока скачаются docker образы sonarqube и postgresql.
 
-### 7.5 Проверка развертывания
+**Проверка:**
+```bash
+sudo docker-compose logs
+sudo docker ps
+sudo docker logs -f admin-sonarqube-1
+sudo docker logs -f sonarqube_db
+
+```
+**Настройка Webhook для этапа QualityGate:**
+Нужно обязательно настроить веб хуки для Jenkins, когда код проекта будет проверен, SonarQube отправит вебхук в Jenkins, что проверка завршена. В противном случае,задание Quality Gate будет висеть минут 5 и потом вывалится в ошибку, так как Jenkins не получил веб хук от SonarQube.
+
+
+- **Указываем адрес хоста SonarQube чтобы при отправке webhook формировался верный json:** Administration → Congiguration → General Settings → Server base URL → http://sonar.local.lab:9000
+- **Создаем вебхук идем в меню Administration:**
+Administration -> Configuration -> Webhooks -> Create
+Project -> Boardgame -> Project Settings -> Webhooks -> Create
+- Name: jenkins-webhook
+- URL: http://jenkins.local.lab:8080/sonarqube-webhook/
+- Create
+
+**Также можно повешать вебхуки на отдельный проект**
+Project -> Boardgame -> Project Settings -> Webhooks -> Create
+
+
+
+<img width="1100" height="755" alt="image" src="https://github.com/user-attachments/assets/ae38f361-e5f3-49be-8548-fa819e3c0cc0" />
+Веб интерфейс sonarqube.
+
+**Доступ:** `https://sonar.your-domain.com:9000`  
+**Логин:** admin/admin (измените после первого входа)
+
+### 10.3 Nexus Repository
 
 ```bash
-# Проверка pods
-kubectl get pods -n nexus
-
-# Проверка services
-kubectl get svc -n nexus
-
-# Ожидаемый вывод:
-# NAME                           TYPE           EXTERNAL-IP      PORT(S)
-# nexus-nexus-repository-manager LoadBalancer   192.168.50.102   8081:xxxxx/TCP
-
-# Проверка логов
-kubectl logs -n nexus -l app=nexus-repository-manager -f
+ssh ubuntu@192.168.50.31
 ```
-
-### 7.6 Получение начального пароля admin
 
 ```bash
-# Дождитесь полной готовности pod
-kubectl wait --for=condition=ready pod \
-  -l app=nexus-repository-manager \
-  -n nexus \
-  --timeout=600s
 
-# Получение пароля
-POD_NAME=$(kubectl get pods -n nexus -l app=nexus-repository-manager -o jsonpath='{.items[0].metadata.name}')
 
-kubectl exec -n nexus $POD_NAME -- cat /nexus-data/admin.password
+# Обновление системы
+sudo apt update && sudo apt upgrade -y
 
-# Сохраните пароль!
+# Установка Docker
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y curl vim openssl docker.io docker-compose
+sudo systemctl enable docker --now
+docker --version
+docker-compose --version
+sudo usermod -aG docker $USER
+sudo usermod -aG docker ubuntu
+
+# Запуск Nexus
+sudo docker run -d \
+  --name nexus \
+  --restart=unless-stopped \
+  -p 8081:8081 \
+  -v nexus-data:/nexus-data \
+  sonatype/nexus3
+
+# Ожидание запуска (~15  секунд)
+sleep 15
+
+# Получение initial admin password
+sudo docker exec nexus cat /nexus-data/admin.password; echo
 ```
 
-### 7.7 Доступ к Nexus
+**Доступ:** `https://nexus.your-domain.com:8081`  
+**Логин:** admin + пароль из команды выше
 
-**После настройки HAProxy**:
+Примечание: При установке Nexus по умолчанию создаются 2 репозитория **maven-releases** и **maven-snapshots**. Если их нет, нужно будет создать. 
 
-```
-http://nexus.local.lab
-```
-
-**Временный доступ**:
-
-```bash
-kubectl port-forward -n nexus svc/nexus-nexus-repository-manager 8081:8081
-
-# http://localhost:8081
-```
-
-**Credentials**:
-- Username: `admin`
-- Password: (из предыдущего шага)
+**Создание репозиториев:**
+1. Sign in
+2. Server administration (шестеренка) → Repositories → Create repository
+3. Создайте: `maven-releases` (maven2 hosted)
+4. Создайте: `maven-snapshots` (maven2 hosted)
 
 ---
 
