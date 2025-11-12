@@ -1084,7 +1084,7 @@ helm repo list
 
 SonarQube - платформа для непрерывной инспекции качества кода.
 
-### 10.2 SonarQube Server
+### SonarQube Server
 
 ```bash
 ssh ubuntu@192.168.50.30
@@ -1213,7 +1213,9 @@ Project -> Boardgame -> Project Settings -> Webhooks -> Create
 **Доступ:** `https://sonar.your-domain.com:9000`  
 **Логин:** admin/admin (измените после первого входа)
 
-### 10.3 Nexus Repository
+### 7. Nexus Repository
+
+Nexus Repository  используется для хранентя артефактов (npm, docker и т.д.)
 
 ```bash
 ssh ubuntu@192.168.50.31
