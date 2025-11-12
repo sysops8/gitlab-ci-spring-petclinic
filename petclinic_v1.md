@@ -667,6 +667,8 @@ k3s-master.local.lab
 k3s-worker-1.local.lab
 k3s-worker-2.local.lab
 gitlab.local.lab
+sonarqube.local.lab
+nexus.local.lab
 EOF
 
 # Применение скрипта на всех VM
