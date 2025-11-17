@@ -1339,14 +1339,14 @@ backend nexus_back
     balance roundrobin
     option httpchk GET /
     http-check expect status 200
-    server nexus 192.168.50.102:8081 check inter 10s fall 3 rise 2
+    server nexus 192.168.50.31:8081 check inter 10s fall 3 rise 2
 
 backend sonar_back
     mode http
     balance roundrobin
     option httpchk GET /api/system/status
     http-check expect status 200
-    server sonar 192.168.50.101:9000 check inter 10s fall 3 rise 2
+    server sonar 192.168.50.30:9000 check inter 10s fall 3 rise 2
 
 backend petclinic_back
     mode http
