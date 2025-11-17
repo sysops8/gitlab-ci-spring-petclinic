@@ -1058,11 +1058,11 @@ kubectl get l2advertisement -n metallb-system
 Helm - пакетный менеджер для Kubernetes, упрощает развертывание приложений.
 
 ### 5.1 Установка Helm на K3s Master
-
+Подключение к Master
 ```bash
-# Подключение к Master
 ssh -J ubuntu@10.0.10.30 ubuntu@192.168.50.20
-
+```
+```bash
 # Установка Helm через официальный скрипт
 curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 
