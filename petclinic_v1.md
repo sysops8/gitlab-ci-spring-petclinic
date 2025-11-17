@@ -2090,26 +2090,16 @@ test:unit:
 #---------------------------------------------------------------------
 sonarqube:scan:
   stage: quality
-  image:
-    name: sonarsource/sonar-scanner-cli:latest
-    entrypoint: [""]
+  image: maven:3.9-eclipse-temurin-17
   variables:
     SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
-    GIT_DEPTH: "0"  # Full clone for better analysis
+    GIT_DEPTH: "0"
   script:
     - echo "🔍 Running SonarQube analysis..."
-    - sonar-scanner
-      -Dsonar.projectKey=spring-petclinic
-      -Dsonar.sources=src/main/java
-      -Dsonar.tests=src/test/java
-      -Dsonar.java.binaries=target/classes
-      -Dsonar.host.url=${SONAR_HOST_URL}
-      -Dsonar.login=${SONAR_TOKEN}
-      -Dsonar.qualitygate.wait=true
-      -Dsonar.qualitygate.timeout=300
+    - mvn $M2_EXTRA sonar:sonar -Dsonar.projectKey=spring-petclinic -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN} -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300
     - echo "✅ SonarQube analysis completed"
   dependencies:
-    - build
+    - test:unit
   allow_failure: true
   only:
     - branches
@@ -2159,18 +2149,12 @@ docker:build:
   before_script:
     - echo "🐳 Preparing Docker build..."
     - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf \"%s:%s\" \"${CI_REGISTRY_USER}\" \"${CI_REGISTRY_PASSWORD}\" | base64 | tr -d '\\n')\"}}}" > /kaniko/.docker/config.json
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf \"%s:%s\" \"${CI_REGISTRY_USER}\" \"${CI_REGISTRY_PASSWORD}\" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
   script:
     - echo "🐳 Building Docker image..."
-    - /kaniko/executor
-      --context "${CI_PROJECT_DIR}"
-      --dockerfile "${CI_PROJECT_DIR}/Dockerfile"
-      --destination "${DOCKER_IMAGE}:${TAG}"
-      --destination "${DOCKER_IMAGE}:latest"
-      --cache=true
-      --cache-ttl=24h
+    - /kaniko/executor --context "${CI_PROJECT_DIR}" --dockerfile "${CI_PROJECT_DIR}/Dockerfile" --destination "${DOCKER_IMAGE}:${TAG}" --destination "${DOCKER_IMAGE}:latest" --cache=true --cache-ttl=24h
     - echo "✅ Docker image built and pushed"
-    - echo "Image: ${DOCKER_IMAGE}:${TAG}"
+    - echo "Image - ${DOCKER_IMAGE}:${TAG}"
   dependencies:
     - package:jar
   only:
@@ -2186,16 +2170,23 @@ deploy:kubernetes:
     name: alpine/k8s:1.28.3
     entrypoint: [""]
   before_script:
-    - echo "☸️  Preparing Kubernetes deployment..."
-    - apk add --no-cache bash curl
+    - echo "☸️ Preparing Kubernetes deployment..."
+    - apk add --no-cache bash curl gettext
+    - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    - install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
     - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
     - mkdir -p /root/.kube
-    - cat $KUBECONFIG > /root/.kube/config
+    - echo "$KUBECONFIG" | base64 -d > /root/.kube/config
     - chmod 600 /root/.kube/config
     - kubectl cluster-info
     - kubectl get nodes
   script:
     - echo "🚀 Deploying to Kubernetes cluster..."
+    - |
+      if [ ! -d "./petclinic-chart" ]; then
+        echo "❌ Chart directory ./petclinic-chart not found!"
+        exit 1
+      fi
     - |
       helm upgrade --install petclinic ./petclinic-chart \
         --set image.tag=${TAG} \
@@ -2206,13 +2197,15 @@ deploy:kubernetes:
         --timeout 5m \
         --atomic
     - echo "✅ Deployment successful!"
-    - echo "Application URL: http://petclinic.local.lab"
+    - echo "Application URL - http://petclinic.local.lab"
     - kubectl get pods -l app=petclinic
     - kubectl get svc petclinic
   environment:
     name: production
     url: http://petclinic.local.lab
     on_stop: stop:kubernetes
+  dependencies:
+    - docker:build
   only:
     - main
     - master
@@ -2225,13 +2218,17 @@ stop:kubernetes:
     name: alpine/k8s:1.28.3
     entrypoint: [""]
   before_script:
-    - apk add --no-cache bash curl
+    - echo "☸️ Preparing Kubernetes cleanup..."
+    - apk add --no-cache bash curl gettext
+    - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    - install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
     - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
     - mkdir -p /root/.kube
-    - cat $KUBECONFIG > /root/.kube/config
+    - echo "$KUBECONFIG" | base64 -d > /root/.kube/config
+    - chmod 600 /root/.kube/config
   script:
     - helm uninstall petclinic --namespace default || true
-    - echo "🗑️  Deployment removed"
+    - echo "🗑️ Deployment removed"
   environment:
     name: production
     action: stop
