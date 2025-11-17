@@ -1640,8 +1640,8 @@ ls -la
 |-----|-------|------|--------|-----------|
 | `NEXUS_USER` | `gitlab-ci` | Variable | No | No |
 | `NEXUS_PASSWORD` | (пароль пользователя) | Variable | Yes | No |
-| `NEXUS_URL` | `http://192.168.50.102:8081` | Variable | No | No |
-| `SONAR_HOST_URL` | `http://192.168.50.101:9000` | Variable | No | No |
+| `NEXUS_URL` | `http://192.168.50.31:8081` | Variable | No | No |
+| `SONAR_HOST_URL` | `http://192.168.50.30:9000` | Variable | No | No |
 | `SONAR_TOKEN` | `squ_xxx...` (токен из SonarQube) | Variable | Yes | No |
 | `CI_REGISTRY` | `https://index.docker.io/v1/` | Variable | No | No |
 | `CI_REGISTRY_USER` | (ваш Docker Hub username) | Variable | No | No |
