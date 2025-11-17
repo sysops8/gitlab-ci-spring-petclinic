@@ -2237,6 +2237,34 @@ stop:kubernetes:
     - main
     - master
 ```
+Примечание: Если не работает DNS в runner, то нужно отредактировать config map с настройками DNS - 
+```
+kubectl edit configmap coredns -n kube-system
+```
+В секцию hosts добавить локальный DNS сервер и в forward доабвить его IP - 192.168.50.1:
+```
+        hosts {
+           192.168.50.1 gateway
+        }
+        prometheus :9153
+        forward . 192.168.50.1 8.8.8.8 8.8.4.4 {
+           max_concurrent 1000
+        }
+```
+Примерный блок:
+```
+      hosts /etc/coredns/NodeHosts {
+         192.168.50.1 gateway.local.lab
+          ttl 60
+          reload 15s
+          fallthrough
+        }
+        prometheus :9153
+       forward . 192.168.50.1 {
+           max_concurrent 1000
+        }
+
+```
 
 ### 11.9 Обновление values.yaml с вашим Docker Hub username
 
