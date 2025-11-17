@@ -1352,7 +1352,8 @@ backend petclinic_back
     mode http
     balance roundrobin
     option httpchk GET /
-    http-check expect status 200 404
+    http-check expect status 200
+    # http-check expect status 200 404
     server petclinic 192.168.50.103:80 check inter 5s fall 3 rise 2
 
 #---------------------------------------------------------------------
