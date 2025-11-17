@@ -1416,8 +1416,8 @@ curl -I http://petclinic.local.lab
 Откройте в браузере:
 
 - http://gitlab.local.lab
-- http://nexus.local.lab
-- http://sonarqube.local.lab
+- http://nexus.local.lab:8081
+- http://sonarqube.local.lab:9000
 
 **Страница статистики HAProxy**:
 
