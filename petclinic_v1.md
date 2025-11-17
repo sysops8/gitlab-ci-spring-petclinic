@@ -1698,7 +1698,108 @@ vim pom.xml
     </snapshotRepository>
 </distributionManagement>
 ```
+Полный файл pom.xml:
+```yaml
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.2.0</version>
+        <relativePath/>
+    </parent>
+    
+    <groupId>org.springframework.samples</groupId>
+    <artifactId>spring-petclinic</artifactId>
+    <version>3.2.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
 
+    <name>spring-petclinic</name>
+    <description>Spring PetClinic Sample Application</description>
+
+    <properties>
+        <java.version>17</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <nexus.host.url>http://192.168.50.31:8081</nexus.host.url>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+    <!-- ИСПРАВЛЕННЫЙ URL maven-public вместо maven-public-group -->
+    <repositories>
+        <repository>
+            <id>nexus</id>
+            <name>Nexus Repository</name>
+            <url>${nexus.host.url}/repository/maven-public</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <distributionManagement>
+        <repository>
+            <id>nexus</id>
+            <name>Nexus Release Repository</name>
+            <url>${nexus.host.url}/repository/maven-releases</url>
+        </repository>
+        <snapshotRepository>
+            <id>nexus</id>
+            <name>Nexus Snapshot Repository</name>
+            <url>${nexus.host.url}/repository/maven-snapshots</url>
+        </snapshotRepository>
+    </distributionManagement>
+</project>
+```
 Также добавьте зеркало для ускорения сборки (опционально):
 
 ```xml
@@ -1745,7 +1846,8 @@ vim .m2/settings.xml
         <mirror>
             <id>nexus</id>
             <name>Nexus Repository Mirror</name>
-            <url>${env.NEXUS_URL}/repository/maven-public-group</url>
+            <!-- ИСПРАВЛЕННЫЙ URL NEXUS -->
+            <url>${env.NEXUS_URL}/repository/maven-public</url>
             <mirrorOf>*</mirrorOf>
         </mirror>
     </mirrors>
