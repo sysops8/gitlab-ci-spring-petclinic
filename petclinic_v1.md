@@ -1533,7 +1533,7 @@ Settings → Security → Users → Create user:
 
 ### 10.1 Первоначальная настройка
 
-1. Откройте http://sonarqube.local.lab
+1. Откройте http://sonarqube.local.lab:9000
 2. Login: `admin` / Password: `admin`
 3. SonarQube попросит сменить пароль - установите новый
 
