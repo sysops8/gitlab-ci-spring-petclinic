@@ -1404,10 +1404,10 @@ sudo journalctl -u haproxy -f
 curl -I http://gitlab.local.lab
 
 # Nexus
-curl -I http://nexus.local.lab
+curl -I http://nexus.local.lab:8081
 
 # SonarQube
-curl -I http://sonarqube.local.lab
+curl -I http://sonarqube.local.lab:9000
 
 # PetClinic (будет 404 до деплоя)
 curl -I http://petclinic.local.lab
