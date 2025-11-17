@@ -800,7 +800,7 @@ sidekiq['max_concurrency'] = 10
 
 # Отключение встроенного мониторинга (экономия RAM)
 prometheus_monitoring['enable'] = false
-grafana['enable'] = false
+# grafana['enable'] = false
 
 # Лимиты Gitaly
 gitaly['ruby_max_rss'] = 300000000
