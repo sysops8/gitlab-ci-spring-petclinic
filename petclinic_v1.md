@@ -1678,7 +1678,7 @@ vim pom.xml
 ```xml
 <properties>
     <!-- Existing properties -->
-    <nexus.host.url>http://192.168.50.102:8081</nexus.host.url>
+    <nexus.host.url>http://192.168.50.31:8081</nexus.host.url>
 </properties>
 ```
 
