@@ -25,7 +25,8 @@
 <img width="2084" height="1334" alt="image" src="https://github.com/user-attachments/assets/2147bb46-47ae-4e0e-80af-279fdf1183cf" />
 
 
-
+Оригинальный репозиторий:
+https://github.com/kunchalavikram1427/gitlab-ci-spring-petclinic
 
 ## Архитектура решения
 
