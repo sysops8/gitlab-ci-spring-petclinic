@@ -2301,10 +2301,10 @@ GitLab Runner будет исполнять CI/CD задачи внутри Kube
 ### 12.1 Добавление Helm репозитория GitLab
 
 На K3s Master:
-
 ```bash
 ssh -J ubuntu@10.0.10.30 ubuntu@192.168.50.20
-
+```
+```bash
 helm repo add gitlab https://charts.gitlab.io
 helm repo update
 
