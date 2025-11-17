@@ -1103,6 +1103,8 @@ docker --version
 docker-compose --version
 sudo usermod -aG docker $USER
 sudo usermod -aG docker ubuntu
+sudo usermod -aG docker admin
+sudo getent group docker 
 
 # Настройка системы для SonarQube
 sudo sysctl -w vm.max_map_count=524288
