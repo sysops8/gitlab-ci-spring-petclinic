@@ -1275,10 +1275,10 @@ HAProxy на Gateway обеспечивает реверс-прокси для �
 ### 8.1 Установка HAProxy
 
 На Gateway (10.0.10.30):
-
 ```bash
 ssh ubuntu@10.0.10.30
-
+```
+```bash
 sudo apt update
 sudo apt install -y haproxy
 ```
