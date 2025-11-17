@@ -1606,12 +1606,6 @@ sudo mv sonar-scanner-5.0.1.3006-linux /opt/sonar-scanner
 sudo ln -s /opt/sonar-scanner/bin/sonar-scanner /usr/local/bin/sonar-scanner
 ```
 
-**Windows:**
-
-1. Скачайте: https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-5.0.1.3006-windows.zip
-2. Распакуйте в `C:\sonar-scanner`
-3. Добавьте `C:\sonar-scanner\bin` в PATH
-
 Проверка:
 
 ```bash
