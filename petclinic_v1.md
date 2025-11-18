@@ -2543,7 +2543,8 @@ helm search repo gitlab-runner
 2. Скопируйте Registration token (под "Set up a shared runner manually")
 
 Пример токена: `GR1348941a1b2c3d4e5f6g7h8i9j0`
-Примеание: Создаем runner и указываем имя k8s, по этому имени runner привязывается в проекту petclinic
+
+Примечание: Создаем runner и указываем имя k8s, по этому имени runner привязывается в проекту petclinic
 
 ### 12.3 Создание namespace
 
