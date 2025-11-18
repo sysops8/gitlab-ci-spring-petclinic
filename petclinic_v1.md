@@ -1650,6 +1650,8 @@ ls -la
 | `CI_REGISTRY_PASSWORD` | (Docker Hub access token) | Variable | Yes | No |
 | `KUBECONFIG` | (содержимое ~/.kube/config) | File | No | No |
 
+Примечание: Переменные настраиваются глобально как в примере, также можно настроить локальные в каждом проекте.
+
 **Важно для KUBECONFIG**:
 
 На K3s Master:
@@ -1658,7 +1660,7 @@ ls -la
 cat ~/.kube/config
 ```
 
-Скопируйте весь вывод и создайте переменную типа **File** в GitLab.
+Скопируйте весь вывод и создайте переменную типа **File** в GitLab. Внутри файла есть IP адрес 127.0.0.1, поменяйте его на адрес k3s master node (192.168.50.20)
 
 **Важно для Docker Hub**:
 
