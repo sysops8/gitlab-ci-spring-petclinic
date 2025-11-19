@@ -796,6 +796,7 @@ gitlab_rails['time_zone'] = 'Asia/Almaty'
 puma['worker_processes'] = 2
 puma['min_threads'] = 1
 puma['max_threads'] = 4
+nginx['client_max_body_size'] = '250m'
 
 sidekiq['max_concurrency'] = 10
 
