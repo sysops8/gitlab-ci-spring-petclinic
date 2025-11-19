@@ -2612,14 +2612,39 @@ dockerize:
 deploy-to-kubernetes:
   stage: deploy
   tags:
-    - k8s  # shell runner
-  image: 
-    name: kunchalavikram/kubectl_helm_cli:latest
+    - k8s  # Используем shell runner где установлен Helm
+  dependencies:
+    - dockerize
+  before_script:
+    - mkdir -p .kube
+    - pwd
+    - ls -lha
+    - echo "$KUBECONFIG" > .kube/config
+    - kubectl cluster-info  # Проверяем подключение к кластеру
+    - helm version  # Проверяем что Helm доступен
   script:
-    - docker run --rm -v $(pwd):/workspace -v ~/.kube:/root/.kube kunchalavikram/kubectl_helm_cli helm upgrade --install petclinic /workspace/petclinic-chart/
+    - |
+      echo "Deploying Spring Petclinic with Helm..."
+      echo "Vars: "
+      echo CI REG IMAGE: ${CI_REGISTRY_IMAGE}
+      echo CI IMAGE TAG ${TAG}
+      echo ===================
+      helm upgrade --install petclinic petclinic-chart/ \
+        --set image.tag=${TAG} \
+        --set image.repository=${CI_REGISTRY_IMAGE} \
+        --atomic \
+        --timeout 5m
+    - echo "Deployment completed successfully!"
 
 ```
-<img width="1919" height="890" alt="image" src="https://github.com/user-attachments/assets/4408e0db-9410-4371-b960-bb1823e41b13" />
+
+<img width="1919" height="987" alt="image" src="https://github.com/user-attachments/assets/16042675-eb61-474b-b220-d487a79181da" />
+
+Картинка. Завершенный Pipeline.
+
+<img width="1919" height="987" alt="image" src="https://github.com/user-attachments/assets/47caf003-9fe4-4b42-815b-a1afb1819d68" />
+
+Картинка. Сайт Perclinic.
 
 Примечание: Если не работает DNS в runner, то нужно отредактировать config map с настройками DNS 
 ```
