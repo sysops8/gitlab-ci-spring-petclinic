@@ -2530,7 +2530,10 @@ curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/s
 sudo apt-get install gitlab-runner
 # Регистрация Runner
 # процесс регистрации:
+# Выбираем executor = shell
 sudo gitlab-runner register
+# Запускаем 
+gitlab-runner run
 ```
 
 Альтернатив в k8s
