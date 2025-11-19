@@ -22,7 +22,8 @@
 16. [Дополнительные настройки](#часть-15-дополнительные-настройки)
 
 ---
-<img width="2084" height="1334" alt="image" src="https://github.com/user-attachments/assets/2147bb46-47ae-4e0e-80af-279fdf1183cf" />
+<img width="1919" height="987" alt="image" src="https://github.com/user-attachments/assets/8fa352de-f3ec-4055-ba3e-fb0bb5bc0a20" />
+
 
 
 Оригинальный репозиторий:
