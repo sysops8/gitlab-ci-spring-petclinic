@@ -2555,7 +2555,7 @@ helm search repo gitlab-runner
 
 В GitLab:
 
-1. Admin Area (гаечный ключ) → CI/CD → Runners
+1. Admin Area (гаечный ключ) → CI/CD → Runners → Create instance runner → k8s
 2. Скопируйте Registration token (под "Set up a shared runner manually")
 
 Пример токена: `GR1348941a1b2c3d4e5f6g7h8i9j0`
