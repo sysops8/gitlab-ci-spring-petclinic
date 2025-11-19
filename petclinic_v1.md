@@ -2533,7 +2533,7 @@ sudo apt-get install gitlab-runner
 # Выбираем executor = shell
 sudo gitlab-runner register
 # Запускаем 
-gitlab-runner run
+sudo gitlab-runner run
 ```
 Установка maven:
 ```
