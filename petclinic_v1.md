@@ -2540,6 +2540,12 @@ sudo apt-get install gitlab-runner
 sudo gitlab-runner register
 # Запускаем 
 sudo gitlab-runner run
+# Установка нужных владельцев для gitlab-runner
+sudo usermod -aG docker gitlab-runner
+sudo usermod -aG docker $USER
+echo Проверка user gitlab-runner должен быть в группе docker
+sudo getent group docker
+
 ```
 Установка maven:
 ```
