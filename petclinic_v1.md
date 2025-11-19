@@ -1730,6 +1730,7 @@ ls -la
 | `SONAR_HOST_URL` | `http://192.168.50.30:9000` | Variable | No | No |
 | `SONAR_TOKEN` | `squ_xxx...` (токен из SonarQube) | Variable | Yes | No |
 | `CI_REGISTRY` | `https://index.docker.io/v1/` | Variable | No | No |
+| `CI_REGISTRY_IMAGE` | `almsys/spring-petclinic` | Variable | No | No |
 | `CI_REGISTRY_USER` | (ваш Docker Hub username) | Variable | No | No |
 | `CI_REGISTRY_PASSWORD` | (Docker Hub access token) | Variable | Yes | No |
 | `KUBECONFIG` | (содержимое ~/.kube/config) | File | No | No |
