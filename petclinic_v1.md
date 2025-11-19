@@ -2535,7 +2535,11 @@ sudo gitlab-runner register
 # Запускаем 
 gitlab-runner run
 ```
-
+Установка maven:
+```
+sudo apt install -y maven
+mvn --version
+```
 Альтернатив в k8s
 
 GitLab Runner будет исполнять CI/CD задачи внутри Kubernetes кластера.
