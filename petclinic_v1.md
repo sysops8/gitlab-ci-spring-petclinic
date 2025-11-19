@@ -2540,7 +2540,9 @@ deploy-to-kubernetes:
     - docker run --rm -v $(pwd):/workspace -v ~/.kube:/root/.kube kunchalavikram/kubectl_helm_cli helm upgrade --install petclinic /workspace/petclinic-chart/
 
 ```
-Примечание: Если не работает DNS в runner, то нужно отредактировать config map с настройками DNS - 
+<img width="1919" height="890" alt="image" src="https://github.com/user-attachments/assets/4408e0db-9410-4371-b960-bb1823e41b13" />
+
+Примечание: Если не работает DNS в runner, то нужно отредактировать config map с настройками DNS 
 ```
 kubectl edit configmap coredns -n kube-system
 ```
