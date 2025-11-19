@@ -862,7 +862,10 @@ http://gitlab.local.lab
 4. **Настройте видимость проектов**:
    - Admin Area → Settings → General → Visibility and access controls
    - Default project visibility: Internal или Private
-
+5. **Увеличение размера вложения**
+   - Admin Area > Settings > CI/CD > Locate the "Maximum build artifact size"
+  
+     
 ### 3.7 Создание тестового проекта
 
 1. New Project → Create blank project
