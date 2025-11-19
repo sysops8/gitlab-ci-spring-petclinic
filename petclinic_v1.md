@@ -2215,231 +2215,87 @@ vim .gitlab-ci.yml
 Содержимое (полный production-ready pipeline):
 
 ```yaml
-# GitLab CI/CD Pipeline for Spring PetClinic
-# Stages: build → test → quality → package → dockerize → deploy
-
-variables:
-  MAVEN_OPTS: "-Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository -Dorg.slf4j.simpleLogger.log.org.apache.maven.cli.transfer.Slf4jMavenTransferListener=warn"
-  M2_EXTRA: "-s .m2/settings.xml"
-  IMAGE_NAME: "spring-petclinic"
-  TAG: "$CI_COMMIT_SHORT_SHA"
-  DOCKER_IMAGE: "$CI_REGISTRY_USER/$IMAGE_NAME"
-
-# Default image for most jobs
 default:
-  image: maven:3.9-eclipse-temurin-17
-  tags:
-    - k8s
-
-# Stages definition
+  image: maven:3.8.2-openjdk-11
+  
+variables:
+  M2_EXTRA_OPTIONS: "-s .m2/settings.xml"
+  IMAGE_NAME: spring-petclinic
+  TAG: $CI_COMMIT_SHA
+  
 stages:
+  - check
   - build
-  - test
-  - quality
-  - package
+  - sonarscan
+  - push
   - dockerize
   - deploy
 
-# Cache Maven dependencies
-cache:
-  key: "$CI_COMMIT_REF_SLUG"
-  paths:
-    - .m2/repository/
-  policy: pull-push
-
-#---------------------------------------------------------------------
-# Stage: Build
-#---------------------------------------------------------------------
-build:
-  stage: build
+check-version:
+  stage: check
+  tags:
+    - k8s  # shell runner для скорости
   script:
-    - echo "🔨 Building Spring PetClinic..."
-    - mvn $M2_EXTRA clean compile -DskipTests
-    - echo "✅ Build completed successfully"
+    - mvn --version
+
+build-job:
+  stage: build
+  tags:
+    - k8s  # shell runner - быстрый Maven кэш
+  script:
+    - echo "Building the WAR file"
+    - mvn package
+    - ls -l target/*.war
   artifacts:
     paths:
       - target/
-    expire_in: 1 hour
-  only:
-    - branches
-    - merge_requests
-
-#---------------------------------------------------------------------
-# Stage: Test
-#---------------------------------------------------------------------
-test:unit:
-  stage: test
-  script:
-    - echo "🧪 Running unit tests..."
-    - mvn $M2_EXTRA test
-    - echo "✅ Tests completed"
-  artifacts:
-    when: always
-    reports:
-      junit:
-        - target/surefire-reports/TEST-*.xml
-    paths:
-      - target/surefire-reports/
-      - target/site/jacoco/
+    exclude:
+      - target/**/*.log
+      - target/**/node_modules/
+      - target/**/*.tmp
+      - target/**/cache/
     expire_in: 1 week
-  dependencies:
-    - build
-  coverage: '/Total.*?([0-9]{1,3})%/'
-  only:
-    - branches
-    - merge_requests
 
-#---------------------------------------------------------------------
-# Stage: Quality Analysis
-#---------------------------------------------------------------------
-sonarqube:scan:
-  stage: quality
-  image: maven:3.9-eclipse-temurin-17
+sonarscan:
+  stage: sonarscan
+  tags:
+    - k8s  # shell runner
   variables:
-    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar"
-    GIT_DEPTH: "0"
+    SONAR_USER_HOME: "${CI_PROJECT_DIR}/.sonar" 
+    SONAR_HOST_URL: ${SONAR_HOST_URL}
+    SONAR_TOKEN: ${SONAR_TOKEN}
+  image:
+    name: sonarsource/sonar-scanner-cli:latest
   script:
-    - echo "🔍 Running SonarQube analysis..."
-    - mvn $M2_EXTRA sonar:sonar -Dsonar.projectKey=spring-petclinic -Dsonar.host.url=${SONAR_HOST_URL} -Dsonar.login=${SONAR_TOKEN} -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=300
-    - echo "✅ SonarQube analysis completed"
-  dependencies:
-    - test:unit
-  allow_failure: true
-  only:
-    - branches
-    - merge_requests
+   - docker run --rm -v $(pwd):/usr/src -e SONAR_HOST_URL -e SONAR_TOKEN sonarsource/sonar-scanner-cli -Dsonar.projectBaseDir=/usr/src -Dsonar.qualitygate.wait=true
 
-#---------------------------------------------------------------------
-# Stage: Package
-#---------------------------------------------------------------------
-package:jar:
-  stage: package
+push-to-nexus:
+  stage: push
+  tags:
+    - k8s  # shell runner
   script:
-    - echo "📦 Packaging application..."
-    - mvn $M2_EXTRA package -DskipTests
-    - ls -lh target/*.jar
-    - echo "✅ Packaging completed"
-  artifacts:
-    paths:
-      - target/*.jar
-    expire_in: 1 week
-  dependencies:
-    - build
-  only:
-    - main
-    - master
-    - develop
+    - mvn $M2_EXTRA_OPTIONS deploy
 
-deploy:nexus:
-  stage: package
-  script:
-    - echo "📤 Deploying artifacts to Nexus..."
-    - mvn $M2_EXTRA deploy -DskipTests
-    - echo "✅ Artifacts deployed to Nexus successfully"
-  dependencies:
-    - package:jar
-  only:
-    - main
-    - master
-
-#---------------------------------------------------------------------
-# Stage: Dockerize
-#---------------------------------------------------------------------
-docker:build:
+dockerize:
   stage: dockerize
+  tags:
+    - docker-runner  # Docker runner для Kaniko
   image:
-    name: gcr.io/kaniko-project/executor:v1.9.0-debug
+    name: gcr.io/kaniko-project/executor:v1.23.0-debug
     entrypoint: [""]
-  before_script:
-    - echo "🐳 Preparing Docker build..."
-    - mkdir -p /kaniko/.docker
-    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf \"%s:%s\" \"${CI_REGISTRY_USER}\" \"${CI_REGISTRY_PASSWORD}\" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
   script:
-    - echo "🐳 Building Docker image..."
-    - /kaniko/executor --context "${CI_PROJECT_DIR}" --dockerfile "${CI_PROJECT_DIR}/Dockerfile" --destination "${DOCKER_IMAGE}:${TAG}" --destination "${DOCKER_IMAGE}:latest" --cache=true --cache-ttl=24h
-    - echo "✅ Docker image built and pushed"
-    - echo "Image - ${DOCKER_IMAGE}:${TAG}"
-  dependencies:
-    - package:jar
-  only:
-    - main
-    - master
+    - echo "{\"auths\":{\"${CI_REGISTRY}\":{\"auth\":\"$(printf "%s:%s" "${CI_REGISTRY_USER}" "${CI_REGISTRY_PASSWORD}" | base64 | tr -d '\n')\"}}}" > /kaniko/.docker/config.json
+    - /kaniko/executor --context "${CI_PROJECT_DIR}" --dockerfile "${CI_PROJECT_DIR}/Dockerfile" --destination "${CI_REGISTRY_USER}/${IMAGE_NAME}:${TAG}"
 
-#---------------------------------------------------------------------
-# Stage: Deploy to Kubernetes
-#---------------------------------------------------------------------
-deploy:kubernetes:
+deploy-to-kubernetes:
   stage: deploy
-  image:
-    name: alpine/k8s:1.28.3
-    entrypoint: [""]
-  before_script:
-    - echo "☸️ Preparing Kubernetes deployment..."
-    - apk add --no-cache bash curl gettext
-    - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    - install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-    - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-    - mkdir -p /root/.kube
-    - echo "$KUBECONFIG" | base64 -d > /root/.kube/config
-    - chmod 600 /root/.kube/config
-    - kubectl cluster-info
-    - kubectl get nodes
+  tags:
+    - k8s  # shell runner
+  image: 
+    name: kunchalavikram/kubectl_helm_cli:latest
   script:
-    - echo "🚀 Deploying to Kubernetes cluster..."
-    - |
-      if [ ! -d "./petclinic-chart" ]; then
-        echo "❌ Chart directory ./petclinic-chart not found!"
-        exit 1
-      fi
-    - |
-      helm upgrade --install petclinic ./petclinic-chart \
-        --set image.tag=${TAG} \
-        --set image.repository=${DOCKER_IMAGE} \
-        --namespace default \
-        --create-namespace \
-        --wait \
-        --timeout 5m \
-        --atomic
-    - echo "✅ Deployment successful!"
-    - echo "Application URL - http://petclinic.local.lab"
-    - kubectl get pods -l app=petclinic
-    - kubectl get svc petclinic
-  environment:
-    name: production
-    url: http://petclinic.local.lab
-    on_stop: stop:kubernetes
-  dependencies:
-    - docker:build
-  only:
-    - main
-    - master
-  when: manual
+    - docker run --rm -v $(pwd):/workspace -v ~/.kube:/root/.kube kunchalavikram/kubectl_helm_cli helm upgrade --install petclinic /workspace/petclinic-chart/
 
-# Cleanup deployment
-stop:kubernetes:
-  stage: deploy
-  image:
-    name: alpine/k8s:1.28.3
-    entrypoint: [""]
-  before_script:
-    - echo "☸️ Preparing Kubernetes cleanup..."
-    - apk add --no-cache bash curl gettext
-    - curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    - install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-    - curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
-    - mkdir -p /root/.kube
-    - echo "$KUBECONFIG" | base64 -d > /root/.kube/config
-    - chmod 600 /root/.kube/config
-  script:
-    - helm uninstall petclinic --namespace default || true
-    - echo "🗑️ Deployment removed"
-  environment:
-    name: production
-    action: stop
-  when: manual
-  only:
-    - main
-    - master
 ```
 Примечание: Если не работает DNS в runner, то нужно отредактировать config map с настройками DNS - 
 ```
@@ -2572,14 +2428,35 @@ helm search repo gitlab-runner
 
 ### 12.2 Получение Registration Token
 
-В GitLab:
+В GitLab создаем 2 runner, первый будет исполнятся в shell, дадим ему имя "shell-executor".
+А второй runner будет запускаться в docker контейнере, дадим ему "docker-executor":
 
-1. Admin Area (гаечный ключ) → CI/CD → Runners → Create instance runner → k8s
+shell executor:
+1. Admin Area (гаечный ключ) → CI/CD → Runners → Create instance runner → shell-executor
 2. Скопируйте Registration token (под "Set up a shared runner manually")
 
+```
+# для shell executor
+gitlab-runner register  --url http://gitlab.local.lab  --token glrt-Tm6E17vlALZ3MLUxvPusiG86MQp0OjEKdToxCw.01.121v8wq0a
+```
+docker executor:
+1. Admin Area (гаечный ключ) → CI/CD → Runners → Create instance runner → docker-executor
+2. Скопируйте Registration token (под "Set up a shared runner manually")
+```
+# для docker executor
+gitlab-runner register  --url http://gitlab.local.lab  --token glrt-Tm6E17vlALZ3MLUxvPusiG86MQp0OjEKdToxCw.01.12124334
+```
 Пример токена: `GR1348941a1b2c3d4e5f6g7h8i9j0`
+```
+# Перезапускаем runner
+sudo gitlab-runner restart
+sudo gitlab-runner verify
+# Ручной зарпуск
+sudo gitlab-runner run
+```
+Примечание: Создаем runner и указываем имя shell-executor и docker-executor, по этому имени runner привязывается в проекту petclinic.
 
-Примечание: Создаем runner и указываем имя k8s, по этому имени runner привязывается в проекту petclinic
+
 
 ### 12.3 Создание namespace
 
