@@ -2518,6 +2518,22 @@ git push -u origin master
 ---
 
 ## Часть 12: Установка GitLab Runner в Kubernetes
+Установка на ВМ с gitlab
+```bash
+# Обновляем систему
+sudo apt update
+sudo apt upgrade -y
+sudo apt install -y curl git jq
+# Добавьте официальный репозиторий GitLab Runner:
+curl -L "https://packages.gitlab.com/install/repositories/runner/gitlab-runner/script.deb.sh" | 
+# Установите GitLab Runner:
+sudo apt-get install gitlab-runner
+# Регистрация Runner
+# процесс регистрации:
+sudo gitlab-runner register
+```
+
+Альтернатив в k8s
 
 GitLab Runner будет исполнять CI/CD задачи внутри Kubernetes кластера.
 
