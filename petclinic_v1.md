@@ -724,7 +724,54 @@ nslookup gitlab.local.lab  # должен вернуть 192.168.50.10
 # С внутренних VM (через jump)
 ssh -J ubuntu@10.0.10.30 ubuntu@192.168.50.10
 ```
+### Настройка SSH доступа на все VM
+Копирование публичного ключа
+```bash
+# Создаем приватный и публичный ключ на Gateway
+ssh-keygen -t ed25519 -C "devops@local.lab" -f ~/.ssh/proxmox_devops
 
+# Копирование публичного ключа на Gateway
+ssh-copy-id -i ~/.ssh/proxmox_devops.pub admin@10.0.10.30
+
+# С Gateway копирование публичного ключа на все внутренние VM
+for host in 192.168.50.{10,20,21,22,30,31}; do
+    ssh-copy-id -i ~/.ssh/proxmox_devops.pub admin@${host}
+done
+
+# Отключение password authentication
+for host in 10.0.10.30 192.168.50.{10,20,21,22,30,31}; do
+    ssh admin@${host} 'sudo sed -i "s/#PasswordAuthentication yes/PasswordAuthentication no/" /etc/ssh/sshd_config'
+    ssh admin@${host} 'sudo systemctl restart sshd'
+done
+
+# Создаем файл ~/.ssh/config или добавляем в его конец настройки, чтобы не вводить постоянно ssh -i public_key admin@gitlab.local.lab
+cat >> ~/.ssh/config <<EOF
+Host gitlab.local.lab k3s-master.local.lab
+    User admin
+    IdentityFile ~/.ssh/proxmox_devops
+    IdentitiesOnly yes
+EOF
+Установливаем правильные права:
+chmod 600 ~/.ssh/config
+```
+Не обязательный пример добавления по отдельности каждый хост:
+```bash
+cat >> ~/.ssh/config <<EOF
+# Или отдельно для каждого хоста
+Host gitlab.local.lab
+    User admin
+    IdentityFile ~/.ssh/proxmox_devops
+
+Host k3s-master.local.lab  
+    User admin
+    IdentityFile ~/.ssh/proxmox_devops
+EOF
+```
+Проверяем вход по ключу с Jumphost:
+```bash
+ssh gitlab.local.lab      # автоматически подставляем  правильный ключ без опции -i <key_name>
+ssh k3s-master.local.lab  # автоматически подставляем правильный ключ без опции -i <key_name>
+```
 ---
 
 ## Часть 3: Установка GitLab CE
