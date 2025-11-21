@@ -751,7 +751,7 @@ Host gitlab.local.lab k3s-master.local.lab
     IdentityFile ~/.ssh/proxmox_devops
     IdentitiesOnly yes
 EOF
-Установливаем правильные права:
+# Установливаем правильные права:
 chmod 600 ~/.ssh/config
 ```
 Не обязательный пример добавления по отдельности каждый хост:
