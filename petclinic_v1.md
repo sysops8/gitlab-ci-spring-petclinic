@@ -1,6 +1,6 @@
 # Spring PetClinic CI/CD Pipeline на Proxmox
 
-Исчерпывающее руководство по развертыванию production-ready CI/CD pipeline с GitLab, Kubernetes, Maven, Nexus, SonarQube на домашнем Proxmox сервере с полной сетевой изоляцией.
+В этом руководстве описывается развертывание production-ready CI/CD pipeline с GitLab, Kubernetes, Maven, Nexus, SonarQube на домашнем Proxmox сервере с полной сетевой изоляцией.
 
 ## Оглавление
 
